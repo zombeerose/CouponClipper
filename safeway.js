@@ -17,7 +17,7 @@ var settings = {
     })
 };
 
-// page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
+page.settings.userAgent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 // page.viewportSize = { width: 480, height: 640 };
 //1. authenticate
 url = 'https://www.safeway.com/iaaw/service/authenticate';
@@ -28,8 +28,10 @@ page.open(url, settings, function(status){
         page.render('auth.png');
 
         //2. load coupons
-        url = 'http://www.safeway.com/ShopStores/Justforu-Coupons.page';
+        url = 'http://www.safeway.com/ShopStores/Justforu-Coupons.page#/category/all';
         page.open(url, function(status) {
+            var isOnline, i, intervalId;
+
             console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
             // page.render('load.png');
             // console.log("SCRIPT: Loaded");
@@ -39,11 +41,30 @@ page.open(url, settings, function(status){
                 //     console.log('FAILURE: could not inject clip.js');
                 //     phantom.exit(1);
                 // }
+                // console.log('SCRIPT: '+page.content);
+                for (i = 0; i < 5; i++) {
+                    isOnline = page.evaluate(function () {
+                        return ($('#j4u-error-body').length === 0);
+                    });
+                    if (isOnline){
+                        console.log('SCRIPT: Page is ready '+i);
+                        break;
+                    } else {
+                        console.log('SCRIPT: Page is offline - attempt: '+i);
+                        page.reload();
+                    }
+                }
+                if (!isOnline){
+                    errorExit('SCRIPT: Failed to load coupons');
+                    return;
+                }
 
                 //3. scroll the page to force all coupons to load
-                var intervalId = window.setInterval(function() {
+                intervalId = window.setInterval(function() {
+                    var isScrollComplete, success;
+
                     console.log('SCRIPT: Run interval '+intervalId);
-                    var isScrollComplete = page.evaluate(function () {
+                    isScrollComplete = page.evaluate(function () {
                         var el = document.body,
                             scrollTop = el.scrollTop,
                             scrollHeight = el.scrollHeight,
@@ -69,7 +90,7 @@ page.open(url, settings, function(status){
                         page.render('scroll.png');
 
                         //4. clip all available coupons
-                        var success = page.evaluate(function() {
+                        success = page.evaluate(function() {
                             var coupons = $("div.lt-offer-Clip.ng-scope");
                             console.log('SCRIPT: Found '+coupons.length+' coupons');
                             if (coupons.length > 0) {
@@ -96,15 +117,11 @@ page.open(url, settings, function(status){
                 }, 1000);
 
             } else {
-                console.log('SCRIPT: FAILURE: could not open coupon page');
-                page.close();
-                phantom.exit(1);
+                errorExit('SCRIPT: FAILURE: could not open coupon page');
             }
         });
     } else {
-        console.log('SCRIPT: FAILURE: could not authenticate');
-        page.close();
-        phantom.exit(1);
+        errorExit('SCRIPT: FAILURE: could not authenticate');
     }
 });
 
@@ -113,3 +130,9 @@ page.onConsoleMessage = function(msg) {
     var dt = new Date().getTime();
     console.log("(" + dt + ") " + msg);
 };
+
+function errorExit(msg){
+    console.log(msg);
+    page.close();
+    phantom.exit(1);
+}
