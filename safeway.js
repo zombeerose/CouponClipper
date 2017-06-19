@@ -88,7 +88,7 @@ function main() {
 
                     //3. scroll the page to force all coupons to load
                     intervalId = window.setInterval(function () {
-                        var isScrollComplete, couponCount, waitTime;
+                        var isScrollComplete, clipCount, totalCount, waitTime;
 
                         console.log('SCRIPT: Run interval ' + intervalId);
                         isScrollComplete = page.evaluate(function () {
@@ -117,7 +117,7 @@ function main() {
                             page.render('scroll.png');
 
                             //4. clip all available coupons
-                            couponCount = page.evaluate(function () {
+                            clipCount = page.evaluate(function () {
                                 var coupons = $("div.lt-offer-Clip.ng-scope"),
                                     count = coupons.length;
 
@@ -135,12 +135,16 @@ function main() {
                                 return count;
                             });
 
-                            waitTime = 1000 + (couponCount * 2500);
+                            totalCount = page.evaluate(function(){
+                                return $("div.lt-offer.ng-scope").length;
+                            });
+
+                            waitTime = 1000 + (clipCount * 2500);
                             console.log('SCRIPT: waiting ' + (waitTime / 1000) + ' seconds for ajax requests to complete ');
                             //must pause to let the ajax requests get sent for all coupons
                             window.setTimeout(function () {
                                 page.render('coupon.png');
-                                sendEmail('Safeway script complete. Processed '+couponCount+' coupons', exit);
+                                sendEmail('Safeway script complete. Clipped '+clipCount+' out of '+totalCount + ' coupons.', exit);
                             }, waitTime);
                         }
                     }, 1000);
