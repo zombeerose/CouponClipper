@@ -37,6 +37,7 @@ function main() {
         },
         data: JSON.stringify({
             "userId": config.store.user,
+            "username": config.store.user,
             "password": config.store.password,
             "source": "WEB",
             "rememberMe": false
@@ -47,6 +48,8 @@ function main() {
     // page.viewportSize = { width: 480, height: 640 };
     //1. authenticate
     url = 'https://www.safeway.com/iaaw/service/authenticate';
+    //TODO:? url = 'https://albertsons.okta.com/api/v1/authn';
+    console.log("SCRIPT: Attempting Authentication: " + url);
     page.open(url, settings, function (status) {
         console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
         if (status === 'success') {
@@ -54,7 +57,7 @@ function main() {
             page.render('auth.png');
 
             //2. load coupons
-            url = 'http://www.safeway.com/ShopStores/Justforu-Coupons.page#/category/all';
+            url = 'https://www.safeway.com/ShopStores/Justforu-Coupons.page?reloaded=true#/category/all';
             page.open(url, function (status) {
                 var isOnline, i, intervalId;
 
@@ -74,6 +77,7 @@ function main() {
                         });
                         if (isOnline) {
                             console.log('SCRIPT: Page is ready ' + i);
+                            page.render(config.store.name + '-ready.png');
                             break;
                         } else {
                             console.log('SCRIPT: Page is offline - attempt: ' + i);

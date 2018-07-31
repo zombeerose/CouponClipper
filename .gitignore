@@ -1,3 +1,4 @@
-/auth.png
-/coupon.png
-/scroll.png
+/.idea/
+/node_modules/
+/*.png
+/*cookies.txt
