@@ -4,6 +4,7 @@
 
 var config = {
     store: {
+        name: 'Safeway',
         user: 'USERNAME',
         password: 'PASSWORD'
     },
@@ -54,7 +55,7 @@ function main() {
         console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
         if (status === 'success') {
             //save the page as an image
-            page.render('auth.png');
+            page.render(config.store.name + '-auth.png');
 
             //2. load coupons
             url = 'https://www.safeway.com/ShopStores/Justforu-Coupons.page?reloaded=true#/category/all';
@@ -62,7 +63,7 @@ function main() {
                 var isOnline, i, intervalId;
 
                 console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
-                // page.render('load.png');
+                // page.render(config.store.name + '-load.png');
                 // console.log("SCRIPT: Loaded");
                 if (status === 'success') {
                     //Injects external JS into the page
@@ -118,7 +119,7 @@ function main() {
                         if (isScrollComplete) {
                             window.clearInterval(intervalId);
                             console.log('SCRIPT: Cleared interval ' + intervalId);
-                            page.render('scroll.png');
+                            page.render(config.store.name + '-scroll.png');
 
                             //4. clip all available coupons
                             clipCount = page.evaluate(function () {
@@ -147,7 +148,7 @@ function main() {
                             console.log('SCRIPT: waiting ' + (waitTime / 1000) + ' seconds for ajax requests to complete ');
                             //must pause to let the ajax requests get sent for all coupons
                             window.setTimeout(function () {
-                                page.render('coupon.png');
+                                page.render(config.store.name + '-coupon.png');
                                 sendEmail('Safeway script complete. Clipped '+clipCount+' out of '+totalCount + ' coupons.', exit);
                             }, waitTime);
                         }
