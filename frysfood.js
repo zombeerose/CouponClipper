@@ -2,20 +2,8 @@
 // Sample Usage
 // /cygdrive/c/PROGRAMMER/phantomjs/bin/phantomjs.exe --ignore-ssl-errors=true --debug=false --cookies-file=frys-cookies.txt frysfood.js | grep "SCRIPT:"
 
-var config = {
-    store: {
-        name: 'FrysFood',
-        user: 'USERNAME',
-        password: 'PASSWORD'
-    },
-    email: {
-        key: 'api:key-XXXX',
-        from: 'Mailgun Sandbox <postmaster@sandboxXXXX.mailgun.org>',
-        subject: 'FrysFood PhantomJS Job',
-        to: 'EMAIL',
-        url: 'https://api.mailgun.net/v2/sandboxXXXX.mailgun.org/messages'
-    }
-};
+var config = CouponClipper.config; //defined in separate "config" file, which is not source-controlled
+var store = config.store.frys;
 
 var page = require('webpage').create();
 
@@ -37,8 +25,8 @@ function main() {
             'Content-Type': 'application/json'
         },
         data: JSON.stringify({
-            "email": config.store.user,
-            "password": config.store.password,
+            "email": store.user,
+            "password": store.password,
             "rememberMe": false
         })
     };
@@ -53,7 +41,7 @@ function main() {
         console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
         if (status === 'success') {
             //save the page as an image
-            page.render(config.store.name + '-auth.png');
+            page.render(store.name + '-auth.png');
 
             //2. load coupons
             url = 'https://www.frysfood.com/cl/coupons/';
@@ -61,7 +49,7 @@ function main() {
                 var isOnline, i, intervalId;
 
                 console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
-                // page.render(config.store.name + '-load.png');
+                // page.render(store.name + '-load.png');
                 // console.log("SCRIPT: Loaded");
                 if (status === 'success') {
                     //Injects external JS into the page
@@ -116,7 +104,7 @@ exit(true);
                         if (isScrollComplete) {
                             window.clearInterval(intervalId);
                             console.log('SCRIPT: Cleared interval ' + intervalId);
-                            page.render(config.store.name + '-scroll.png');
+                            page.render(store.name + '-scroll.png');
 
                             //4. clip all available coupons
                             clipCount = page.evaluate(function () {
@@ -145,7 +133,7 @@ exit(true);
                             console.log('SCRIPT: waiting ' + (waitTime / 1000) + ' seconds for ajax requests to complete ');
                             //must pause to let the ajax requests get sent for all coupons
                             window.setTimeout(function () {
-                                page.render(config.store.name + '-coupon.png');
+                                page.render(store.name + '-coupon.png');
                                 sendEmail('Safeway script complete. Clipped '+clipCount+' out of '+totalCount + ' coupons.', exit);
                             }, waitTime);
                         }
@@ -183,7 +171,7 @@ function sendEmail(body, cb){
         data = {
             from: config.email.from,
             to: config.email.to,
-            subject: config.email.subject,
+            subject: store.name + ' ' + config.email.subject,
             text: body + "\n\n" + new Date().getTime()
         };
 

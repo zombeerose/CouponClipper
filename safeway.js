@@ -2,20 +2,8 @@
 // Sample Usage
 // /cygdrive/c/PROGRAMMER/phantomjs/bin/phantomjs.exe --ignore-ssl-errors=true --debug=false safeway.js | grep "SCRIPT:"
 
-var config = {
-    store: {
-        name: 'Safeway',
-        user: 'USERNAME',
-        password: 'PASSWORD'
-    },
-    email: {
-        key: 'api:key-XXXX',
-        from: 'Mailgun Sandbox <postmaster@sandboxXXXX.mailgun.org>',
-        subject: 'Safeway PhantomJS Job',
-        to: 'EMAIL',
-        url: 'https://api.mailgun.net/v2/sandboxXXXX.mailgun.org/messages'
-    }
-};
+var config = CouponClipper.config; //defined in separate "config" file, which is not source-controlled
+var store = config.store.safeway;
 
 var page = require('webpage').create();
 
@@ -37,9 +25,9 @@ function main() {
             'Content-Type': 'application/json'
         },
         data: JSON.stringify({
-            "userId": config.store.user,
-            "username": config.store.user,
-            "password": config.store.password,
+            "userId": store.user,
+            "username": store.user,
+            "password": store.password,
             "source": "WEB",
             "rememberMe": false
         })
@@ -55,7 +43,7 @@ function main() {
         console.log("SCRIPT: Status: " + status + "; URL: " + page.url);
         if (status === 'success') {
             //save the page as an image
-            page.render(config.store.name + '-auth.png');
+            page.render(store.name + '-auth.png');
 
             //2. load coupons
             url = 'https://www.safeway.com/ShopStores/Justforu-Coupons.page?reloaded=true#/category/all';
@@ -78,7 +66,7 @@ function main() {
                         });
                         if (isOnline) {
                             console.log('SCRIPT: Page is ready ' + i);
-                            page.render(config.store.name + '-ready.png');
+                            page.render(store.name + '-ready.png');
                             break;
                         } else {
                             console.log('SCRIPT: Page is offline - attempt: ' + i);
@@ -119,7 +107,7 @@ function main() {
                         if (isScrollComplete) {
                             window.clearInterval(intervalId);
                             console.log('SCRIPT: Cleared interval ' + intervalId);
-                            page.render(config.store.name + '-scroll.png');
+                            page.render(store.name + '-scroll.png');
 
                             //4. clip all available coupons
                             clipCount = page.evaluate(function () {
@@ -148,7 +136,7 @@ function main() {
                             console.log('SCRIPT: waiting ' + (waitTime / 1000) + ' seconds for ajax requests to complete ');
                             //must pause to let the ajax requests get sent for all coupons
                             window.setTimeout(function () {
-                                page.render(config.store.name + '-coupon.png');
+                                page.render(store.name + '-coupon.png');
                                 sendEmail('Safeway script complete. Clipped '+clipCount+' out of '+totalCount + ' coupons.', exit);
                             }, waitTime);
                         }
@@ -186,7 +174,7 @@ function sendEmail(body, cb){
         data = {
             from: config.email.from,
             to: config.email.to,
-            subject: config.email.subject,
+            subject: store.name + ' ' + config.email.subject,
             text: body + "\n\n" + new Date().getTime()
         };
 
