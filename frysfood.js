@@ -2,18 +2,25 @@
 // Sample Usage
 // /cygdrive/c/PROGRAMMER/phantomjs/bin/phantomjs.exe --ignore-ssl-errors=true --debug=false --cookies-file=frys-cookies.txt frysfood.js | grep "SCRIPT:"
 
-var config = CouponClipper.config; //defined in separate "config" file, which is not source-controlled
-var store = config.store.frys;
-
 var page = require('webpage').create();
-
 //evaluate runs in a sandbox so we don't get the console.log msgs w/o listening to msg
 page.onConsoleMessage = function(msg) {
     var dt = new Date().getTime();
     console.log("(" + dt + ") " + msg);
 };
 
-main();
+if (page.injectJs('config.js')) {
+    var config = page.evaluate(function() {
+        //defined in separate "config" file, which is not source-controlled
+        return CouponClipper.config;
+    });
+    var store = config.store.frys;
+
+    main();
+} else {
+    console.log('SCRIPT: Failed to include config.js');
+    exit(false);
+}
 
 function main() {
     // var page = require('webpage').create();
